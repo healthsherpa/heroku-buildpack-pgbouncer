@@ -38,8 +38,8 @@ teardown_file() {
     assert_success
     cat "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
     assert_line 'Setting DATABASE_URL_PGBOUNCER variable...'
-    assert grep "auth_type = scram-sha-256" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
-    assert grep "server_tls_sslmode = require" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
+    assert grep "auth_type                 = scram-sha-256" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
+    assert grep "server_tls_sslmode        = require" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
     assert grep "db1= host=host dbname=name?query port=5432" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
     assert grep "db2= host=host2 dbname=dbname port=7777" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
     assert grep "\"user\" \"pass\"" "$PGBOUNCER_CONFIG_DIR/users.txt"
@@ -52,7 +52,7 @@ teardown_file() {
     run bash bin/gen-pgbouncer-conf.sh
     assert_success
     cat "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
-    assert grep "auth_type = md5" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
+    assert grep "auth_type                 = md5" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
 }
 
 @test "successfully allows changing of server_tls_sslmode" {
@@ -61,7 +61,7 @@ teardown_file() {
     run bash bin/gen-pgbouncer-conf.sh
     assert_success
     cat "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
-    assert grep "server_tls_sslmode = prefer" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
+    assert grep "server_tls_sslmode        = prefer" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
 }
 
 @test "successfully allows changing of max_prepared_statements" {
@@ -105,7 +105,7 @@ teardown_file() {
     assert_success
     cat "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
     assert_line 'Setting DATABASE_URL_PGBOUNCER variable...'
-    assert grep "server_tls_sslmode = require" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
+    assert grep "server_tls_sslmode        = require" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
     assert grep "primary= host=host dbname=name?query port=5432" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
     assert grep "analytics= host=host2 dbname=dbname port=7777" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
     assert grep "user" "$PGBOUNCER_CONFIG_DIR/users.txt"
@@ -121,7 +121,7 @@ teardown_file() {
     assert_success
     cat "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
     assert_line 'Setting DATABASE_URL_PGBOUNCER variable...'
-    assert grep "server_tls_sslmode = require" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
+    assert grep "server_tls_sslmode        = require" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
     assert grep "primary= host=host dbname=name?query port=5432" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
     assert grep "analytics= host=host2 dbname=dbname port=7777" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
     assert grep "user" "$PGBOUNCER_CONFIG_DIR/users.txt"
