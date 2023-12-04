@@ -29,6 +29,10 @@ tar xzf "$BUILDPACK_DIR/pgbouncer-${STACK}".tgz -C "${BUILD_DIR}"/"${VENDORED_PG
 pgbouncer_version=$("${BUILD_DIR}"/"${VENDORED_PGBOUNCER}"/bin/pgbouncer -V 2>&1 | head -1 | awk '{ print $NF }')
 echo "-----> pgbouncer-buildpack: Installed pgbouncer ${pgbouncer_version}"
 
+echo "-----> pgbouncer-buildpack: Moving the .profile.d/pgbouncer.sh"
+cp "$BUILDPACK_DIR/.profile.d/pgbouncer.sh" "$BUILD_DIR/.profile.d/pgbouncer.sh"
+chmod +x "$BUILD_DIR/.profile.d/pgbouncer.sh"
+
 echo "-----> pgbouncer-buildpack: Moving the configuration generation script into app/bin"
 cp "$BUILDPACK_DIR/bin/gen-pgbouncer-conf.sh" "$BUILD_DIR/bin"
 chmod +x "$BUILD_DIR/bin/gen-pgbouncer-conf.sh"

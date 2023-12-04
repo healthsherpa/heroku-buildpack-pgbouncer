@@ -4,6 +4,8 @@ FROM $BASE_IMAGE
 ARG STACK
 RUN mkdir -p /app /cache /env
 COPY . /buildpack
+COPY .profile.d/pgbouncer.sh /buildpack/.profile.d/pgbouncer.sh
+
 # Sanitize the environment seen by the buildpack, to prevent reliance on
 # environment variables that won't be present when it's run by Heroku CI.
 RUN env -i PATH=$PATH HOME=$HOME STACK=$STACK /buildpack/bin/detect /app
