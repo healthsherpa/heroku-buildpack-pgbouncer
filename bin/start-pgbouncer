@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Adapted from https://github.com/ryandotsmith/nginx-buildpack/
 
-# shellcheck source=./../.profile.d/init.sh
+# shellcheck source=./../.profile.d/pgbouncer.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../.profile.d/pgbouncer.sh"
 
 function is-pgbouncer-service-enabled() {

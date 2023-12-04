@@ -3,7 +3,7 @@
 
 set +e
 
-# shellcheck source=./../.profile.d/init.sh
+# shellcheck source=./../.profile.d/pgbouncer.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../.profile.d/pgbouncer.sh"
 
 pgbouncer-start-as-a-service
