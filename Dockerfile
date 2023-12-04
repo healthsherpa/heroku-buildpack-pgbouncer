@@ -10,10 +10,9 @@ RUN env -i PATH=$PATH HOME=$HOME STACK=$STACK /buildpack/bin/detect /app
 RUN env -i PATH=$PATH HOME=$HOME STACK=$STACK /buildpack/bin/compile /app /cache /env
 
 ENV DATABASE_URL=postgres://user:pass@example.com:5432/postgres
-ENV PGBOUNCER_CONFIG_FILE=vendor/pgbouncer/pgbouncer.ini
 WORKDIR /app
 RUN bash bin/gen-pgbouncer-conf.sh
-RUN sed -i -e :a -e '$d;N;2,2ba' -e 'P;D' ${PGBOUNCER_CONFIG_FILE}
+RUN sed -i -e :a -e '$d;N;2,2ba' -e 'P;D' vendor/pgbouncer/pgbouncer.ini
 RUN useradd pgbouncer
 RUN chown pgbouncer -R /app
 USER pgbouncer

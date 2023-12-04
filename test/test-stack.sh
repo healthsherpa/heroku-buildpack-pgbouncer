@@ -5,7 +5,7 @@ set -euo pipefail
 [ $# -eq 1 ] || { echo "Usage: $0 STACK"; exit 1; }
 
 STACK="${1}"
-BASE_IMAGE="heroku/${STACK/-/:}-build"
+BASE_IMAGE="herokuhealthsherpa/${STACK/-/:}-build"
 OUTPUT_IMAGE="pgbouncer-test-${STACK}"
 
 echo "Building buildpack on stack ${STACK}..."
