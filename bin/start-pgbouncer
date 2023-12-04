@@ -19,9 +19,10 @@ function main() {
   run-pgbouncer "$@"
 }
 
+declare -A pids signals
+
 function run-pgbouncer() {
   declare psmgr=/tmp/pgbouncer-buildpack-wait
-  declare -A pids signals
 
   config-gen
 
@@ -69,16 +70,6 @@ function run-pgbouncer() {
     at "kill-aux name=$name pid=${pids[$name]} signal=${signals[$name]}"
     kill -SIGHUP "${pids[$name]}"
   done
-}
-
-# @description
-#   This function determines if the pgbouncer process should keep running
-#   because other dependencies might be using it.
-keep-running() {
-  declare pattern="$1"
-  declare -a pids
-  pids=($(pgrep -f "$pattern"))
-  [[ ${#pids[@]} -gt 0 ]]
 }
 
 # @description

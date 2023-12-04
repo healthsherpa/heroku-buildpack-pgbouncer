@@ -1,9 +1,68 @@
 #!/usr/bin/env bash
 # vim: ft=bash
+#
+# Start this script on the background, eg:
+#     bin/pgbouncer-start-as-a-service.sh &
 
 set +e
 
 # shellcheck source=./../.profile.d/pgbouncer.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../.profile.d/pgbouncer.sh"
 
-pgbouncer-start-as-a-service
+# @description
+#   Start pgbouncer service and ignore certain signals
+function pgbouncer-start-as-a-service() {
+  # Do not start the service if PgBouncer is not enabled
+  config-gen
+
+  trap 'pgbouncer-initiate-shutdown' SIGTERM SIGINT
+
+  if [[ -x ${PGBOUNCER_BINARY} && -s ${PGBOUNCER_CONFIG_FILE} ]]; then
+    set -x
+    ${PGBOUNCER_BINARY} -d -v "${PGBOUNCER_CONFIG_FILE}" 2>"${PGBOUNCER_STDERR}"
+    set +x
+  else
+    [[ -x ${PGBOUNCER_BINARY} ]] || err "pgbouncer-start-as-a-service(): pgbouncer binary [${PGBOUNCER_BINARY}] is not found, or not executable"
+    [[ -s ${PGBOUNCER_CONFIG_FILE} ]] || err "pgbouncer-start-as-a-service(): pgbouncer config file [${PGBOUNCER_CONFIG_FILE}] is not found, or not readable"
+    return 1
+  fi
+
+  sleep 1
+
+  pgbouncer-get-current-pid || {
+    err "pgbouncer-start-as-a-service(): pgbouncer failed to start: [${PGBOUNCER_BINARY} -d -v ${PGBOUNCER_CONFIG_FILE}]"
+    [[ -s ${PGBOUNCER_STDERR} ]] && {
+      err "pgbouncer-start-as-a-service(): STDERR:"
+      cat "${PGBOUNCER_STDERR}"
+      rm -f "${PGBOUNCER_STDERR}"
+    }
+    return 1
+  }
+
+  PGBOUNCER_SERVICE_PID=$(pgbouncer-current-pid)
+  export PGBOUNCER_SERVICE_PID
+
+  if [[ -n ${PGBOUNCER_SERVICE_PID} && ${PGBOUNCER_SERVICE_PID} -gt 0 ]]; then
+    at "pgbouncer-start-as-a-service(): pgbouncer started with PID=${PGBOUNCER_SERVICE_PID}"
+  else
+    err "pgbouncer-start-as-a-service(): pgbouncer failed to stay running"
+    return 1
+  fi
+
+  while true; do
+    local pid=$(pgbouncer-current-pid)
+    if [[ -n ${pid} && ${pid} -eq ${PGBOUNCER_SERVICE_PID} ]]; then
+      inf "pgbouncer-start-as-a-service(): pgbouncer is running with PID=${PGBOUNCER_SERVICE_PID}"
+      sleep 60
+    else
+      inf "pgbouncer-start-as-a-service(): pgbouncer is no longer running"
+      break
+    fi
+  done
+
+  return 0
+}
+
+is-pgbouncer-service-enabled || return 0
+
+pgbouncer-start-as-a-service "$@"

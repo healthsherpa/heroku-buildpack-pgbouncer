@@ -85,11 +85,13 @@ INFO:  pgBouncer has been configured with 2 database(s).
 
 
 ```bash
-if [[ ${PGBOUNCER_ENABLED} == "true" ]]; then
-  [[ -x bin/start-pgbouncer-as-service && -x bin/use-client-pgbouncer ]] && {
-    bin/start-pgbouncer-as-service && source bin/use-client-pgbouncer
-  } 
-fi
+[[ -x bin/start-pgbouncer-as-service ]] && {
+    # Start pgBouncer as a daemon and the script to watch it and terminate it
+    # when the dyno is shutting down
+    bin/start-pgbouncer-as-service &
+    # if PGBOUNCER_VARS_DISABLED is not set to "true", exports *_PGBOUNCER urlss
+    source bin/use-client-pgbouncer
+} 
 ```
 
 ## Using ExchangeCompare's `datadog/prerun.sh`
