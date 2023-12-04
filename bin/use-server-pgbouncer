@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# vim: ft=bash
+
+# shellcheck source=./../.profile.d/init.sh
+source "$(dirname "${BASH_SOURCE[0]}")/../.profile.d/pgbouncer.sh"
 
 main() {
   at pgbouncer-enabled
@@ -36,10 +40,6 @@ main() {
   else
     return 0
   fi
-}
-
-at() {
-  echo "buildpack=pgbouncer at=$*"
 }
 
 [[ "$0" != "${BASH_SOURCE[0]}" ]] || main "$@"

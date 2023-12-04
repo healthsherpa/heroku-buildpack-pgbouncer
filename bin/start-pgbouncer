@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # Adapted from https://github.com/ryandotsmith/nginx-buildpack/
 
+# shellcheck source=./../.profile.d/init.sh
+source "$(dirname "${BASH_SOURCE[0]}")/../.profile.d/pgbouncer.sh"
+
 function is-pgbouncer-service-enabled() {
   if ! is-enabled "${PGBOUNCER_ENABLED:-1}"; then
     at pgbouncer-disabled
@@ -27,7 +30,7 @@ function run-pgbouncer() {
   mkfifo "$psmgr"
 
   # Start processes.
-  aux-start pgbouncer SIGINT vendor/pgbouncer/bin/pgbouncer vendor/pgbouncer/pgbouncer.ini
+  aux-start pgbouncer SIGINT ${PGBOUNCER_BINARY} ${PGBOUNCER_CONFIG_FILE}
   app-start SIGTERM "$@"
   pid=$!
   pgid=$(ps -o pgid= $pid | xargs)
@@ -68,24 +71,21 @@ function run-pgbouncer() {
   done
 }
 
-config-gen() {
-  if [ -f "vendor/pgbouncer/pgbouncer.ini" ]
-  then
-    return
-  fi
-  # Generate config files
-  at config-gen-start
-  source bin/gen-pgbouncer-conf.sh
-  at config-gen-end
-
-  # Overwrite config vars with pgbouncer targets
-  export POSTGRES_URLS=${PGBOUNCER_URLS:-DATABASE_URL}
-
-  for POSTGRES_URL in $POSTGRES_URLS; do
-    at "config-gen-override $POSTGRES_URL"
-  done
+# @description
+#   This function determines if the pgbouncer process should keep running
+#   because other dependencies might be using it.
+keep-running() {
+  declare pattern="$1"
+  declare -a pids
+  pids=($(pgrep -f "$pattern"))
+  [[ ${#pids[@]} -gt 0 ]]
 }
 
+# @description
+#   This function
+# @param $name - name of the process
+# @param $signal - signal to forward to the process started by this function
+#        whenever a SIGTERM is sent to the process.
 aux-start() {
   declare name=$1 signal=$2
   shift 2
@@ -151,23 +151,5 @@ app-start() {
   at "$name-launched pid=$!"
 }
 
-
-function inf() {
-  echo -e "INFO:  $* "
-}
-
-function err() {
-   echo -e "ERROR: $* "
-}
-
-at() {
-  inf "buildpack=pgbouncer at=$*"
-}
-
-is-enabled() {
-  ( shopt -s extglob nocasematch
-    [[ $1 == @(1|true|yes|on) ]]
-  )
-}
 
 [[ "$0" != "${BASH_SOURCE[0]}" ]] || main "$@"

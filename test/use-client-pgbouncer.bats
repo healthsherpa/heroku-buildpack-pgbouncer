@@ -1,6 +1,7 @@
 #!/usr/bin/env bats
 
 load helper
+load ../.profile.d/pgbouncer.sh
 
 setup() {
   export PGBOUNCER_OUTPUT_URLS=true
@@ -26,27 +27,34 @@ teardown() {
   unset PGBOUNCER_ENABLED
   run source bin/use-client-pgbouncer printenv
   assert_success
-  assert_line "INFO:  pgbouncer-disabled"
-  assert_line "INFO:  pgbouncer-disabled"
-  assert_line "ERROR: pgBouncer is not enabled, skipping..."
+  assert_output_contains "DISABLED ✖︎ pgbouncer-service"
+  assert_output_contains "ERROR: Client pgBouncer is not enabled, skipping..."
 }
 
 @test "returns success and enables when PGBOUNCER_URLS is blank" {
   unset PGBOUNCER_URLS
   run source bin/use-client-pgbouncer printenv
   assert_success
-  assert_line "INFO:  Client pgBouncer is enabled"
+  assert_output_contains "INFO:  Client pgBouncer is enabled"
 }
 
 @test "returns success when all variables are properly set" {
   run source bin/use-client-pgbouncer printenv
   assert_success
-  assert_output <<EOF
+  assert_output_contains <<EOF
 INFO:  Client pgBouncer is enabled
 INFO:               DATABASE_URL_PGBOUNCER | postgres://user:********@127.0.0.1:6000/db-primary
 INFO:       REPLICA_DATABASE_URL_PGBOUNCER | postgres://user:********@127.0.0.1:6000/db-replica
 INFO:  pgBouncer has been configured with 2 database(s).
 EOF
+}
+
+@test "does not export *_PGBOUNCER urls when PGBOUNCER_VARS_DISABLED is true" {
+  export PGBOUNCER_VARS_DISABLED=true
+  run source bin/use-client-pgbouncer printenv
+  assert_success
+  assert_output_contains "INFO:  pgBouncer <VAR>_PGBOUNCER exports are disabled, skipping..."
+  refute "${DATABASE_URL_PGBOUNCER}"
 }
 
 @test "sets *_PGBOUNCER variables" {

@@ -16,31 +16,12 @@
 
 set +e
 
-function inf() {
-  echo -e "INFO:  $*"
-}
-
-function err() {
-   echo -e "ERROR: $*"
-}
+# shellcheck source=./../.profile.d/init.sh
+source "$(dirname "${BASH_SOURCE[0]}")/../.profile.d/pgbouncer.sh"
 
 export PGBOUNCER_OUTPUT_URLS=${PGBOUNCER_OUTPUT_URLS:-false}
 
-function is-enabled() {
-  ( shopt -s extglob nocasematch
-    [[ $1 == @(1|true|yes|on) ]]
-  )
-}
-
-function is-pgbouncer-service-enabled() {
-  if ! is-enabled "${PGBOUNCER_ENABLED}"; then
-    inf pgbouncer-disabled
-    return 1
-  fi
-  return 0
-}
-
-is-pgbouncer-service-enabled && {
+if is-pgbouncer-service-enabled; then
   export POSTGRES_URLS=${PGBOUNCER_URLS:-DATABASE_URL}
   export POSTGRES_URL_NAMES=${POSTGRES_URL_NAMES:-${PGBOUNCER_URL_NAMES:-''}}
 
@@ -49,9 +30,9 @@ is-pgbouncer-service-enabled && {
   if [[ -n ${POSTGRES_URL_NAMES} ]]; then
     mapfile -t POSTGRES_URL_NAMES_ARRAY < <(echo "${POSTGRES_URL_NAMES}" | tr ' ' '\n')
   fi
-}
+fi
 
-index=0
+declare -i index=0
 
 function dbname() {
   local idx="$1"
@@ -64,6 +45,11 @@ function dbname() {
 
 function setup-client-pgbouncer() {
   local postgres_url
+
+  if is-enabled "${PGBOUNCER_VARS_DISABLED}"; then
+    inf "pgBouncer <VAR>_PGBOUNCER exports are disabled, skipping..."
+    return 0
+  fi
 
   for postgres_url in $POSTGRES_URLS; do
     local postgresql_url_value="${!postgres_url}"
@@ -90,7 +76,7 @@ function setup-client-pgbouncer() {
 
     local var_name="${postgres_url}_PGBOUNCER"
 
-    if [ "$PGBOUNCER_PREPARED_STATEMENTS" == "false" ]; then
+    if [[ "$PGBOUNCER_PREPARED_STATEMENTS" == "false" ]]; then
       export "${var_name}"=postgres://"$DB_USER":"$DB_PASS"@127.0.0.1:6000/$client_db_name?prepared_statements=false
     else
       export "${var_name}"=postgres://"$DB_USER":"$DB_PASS"@127.0.0.1:6000/$client_db_name
@@ -112,5 +98,5 @@ is-pgbouncer-service-enabled && {
   inf "Client pgBouncer is enabled"
   setup-client-pgbouncer
 } || {
-  err "pgBouncer is not enabled, skipping..."
+  err "Client pgBouncer is not enabled, skipping..."
 }
