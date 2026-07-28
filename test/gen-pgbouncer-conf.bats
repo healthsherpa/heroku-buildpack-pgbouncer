@@ -38,7 +38,7 @@ teardown_file() {
     assert_success
     cat "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
     assert_line 'Setting DATABASE_URL_PGBOUNCER variable...'
-    assert grep "auth_type                 = scram-sha-256" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
+    assert grep "auth_type                 = md5" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
     assert grep "server_tls_sslmode        = require" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
     assert grep "db1= host=host dbname=name?query port=5432" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
     assert grep "db2= host=host2 dbname=dbname port=7777" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
@@ -48,11 +48,11 @@ teardown_file() {
 
 @test "successfully allows changing of auth_type" {
     export DATABASE_URL="postgres://user:pass@host:5432/name?query"
-    export PGBOUNCER_AUTH_TYPE="md5"
+    export PGBOUNCER_AUTH_TYPE="scram-sha-256"
     run bash bin/gen-pgbouncer-conf.sh
     assert_success
     cat "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
-    assert grep "auth_type                 = md5" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
+    assert grep "auth_type                 = scram-sha-256" "$PGBOUNCER_CONFIG_DIR/pgbouncer.ini"
 }
 
 @test "successfully allows changing of server_tls_sslmode" {
