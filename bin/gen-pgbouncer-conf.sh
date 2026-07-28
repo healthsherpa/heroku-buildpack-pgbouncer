@@ -28,7 +28,7 @@ cat >>"$CONFIG_DIR/pgbouncer.ini" <<EOFEOF
 [pgbouncer]
 listen_addr               = 127.0.0.1
 listen_port               = 6000
-auth_type                 = ${PGBOUNCER_AUTH_TYPE:-scram-sha-256}
+auth_type                 = ${PGBOUNCER_AUTH_TYPE:-md5}
 auth_file                 = $CONFIG_DIR/users.txt
 server_tls_sslmode        = ${PGBOUNCER_SERVER_TLS_SSLMODE:-require}
 server_tls_protocols      = secure
