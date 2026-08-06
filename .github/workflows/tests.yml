@@ -7,19 +7,33 @@ on:
       - main
   pull_request:
     types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: run bats tests
-      run: docker run -t -v "${PWD}:/code" bats/bats:latest test/*.bats
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: run bats tests
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/test:/code/test:ro" \
+            -v "${{ github.workspace }}/bin:/code/bin:ro" \
+            -w /code \
+            bats/bats@sha256:5322b877351fda0cc435de8c6116de7d0a2ec79d7c680132a0ef329a633bc66f \
+            test/*.bats
   test-stack:
     strategy:
       matrix:
         stack: [heroku-18, heroku-20, heroku-22]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: run stack test
-      run: bash test/test-stack.sh ${{ matrix.stack }}
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: run stack test
+        run: bash test/test-stack.sh ${{ matrix.stack }}
