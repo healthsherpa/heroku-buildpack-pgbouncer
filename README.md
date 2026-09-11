@@ -193,8 +193,8 @@ You can also run the test script directly: `test/run_all.sh`
   connections. [This is a slightly more complete answer from stackoverflow](http://stackoverflow.com/questions/12189162/what-are-advantages-of-using-transaction-pooling-with-pgbouncer)
 
 - Q: Why shouldn't I use transaction pooling?
-- A: If you need to use named prepared statements, advisory locks,
-  listen/notify, or other features that operate on a session level.
+- A: If you need to use advisory locks, listen/notify, or other features that
+  operate on a session level.
   Please refer to
   PGBouncer's [feature matrix](https://www.pgbouncer.org/features.html#sql-feature-map-for-pooling-modes)
   for all transaction pooling caveats.
@@ -258,7 +258,7 @@ $ git push heroku main
 -----> Multipack app detected
 -----> Fetching custom git buildpack... done
 -----> pgbouncer app detected
-       Using pgbouncer version: 1.7-heroku
+       Using pgbouncer version: 1.25.2-heroku
 -----> Fetching and vendoring pgbouncer into slug
 -----> Moving the configuration generation script into app/bin
 -----> Moving the start-pgbouncer script into app/bin
@@ -274,9 +274,9 @@ that process.
 
 ## PgBouncer Version
 
-- Heroku-18: `v1.17.0`
-- Heroku-20: `v1.17.0`
-- Heroku-22: `v1.17.0`
+- Heroku-22: `v1.25.2`
+- Heroku-24: `v1.25.2`
+- Heroku-26: `v1.25.2`
 
 ## Multiple Databases
 
@@ -326,7 +326,10 @@ settings are right for you.
 
 | First Header                          | Second Header                                                                                                                                                                                                                                                                                                                                                                           |
 |---------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `PGBOUNCER_AUTH_TYPE`                 | Default is `md5`. Can be changed to `scram-sha-256` or `plain` depending on server support.                                                                                                                                                                                                                                                                                              |
+| `PGBOUNCER_SERVER_TLS_SSLMODE`        | Default is `require`.                                                                                                                                                                                                                                                                                                                                                                   |
 | `PGBOUNCER_POOL_MODE`                 | Default is transaction                                                                                                                                                                                                                                                                                                                                                                  |
+| `PGBOUNCER_MAX_PREPARED_STATEMENTS`   | Default is 0                                                                                                                                                                                                                                                                                                                                                                            |
 | `PGBOUNCER_MAX_CLIENT_CONN`           | Default is 100                                                                                                                                                                                                                                                                                                                                                                          |
 | `PGBOUNCER_DEFAULT_POOL_SIZE`         | Default is 1                                                                                                                                                                                                                                                                                                                                                                            |
 | `PGBOUNCER_MIN_POOL_SIZE`             | Default is 0                                                                                                                                                                                                                                                                                                                                                                            |
@@ -342,7 +345,8 @@ settings are right for you.
 | `PGBOUNCER_STATS_PERIOD`              | Default is 60                                                                                                                                                                                                                                                                                                                                                                           |
 | `PGBOUNCER_SERVER_RESET_QUERY`        | Default is empty when pool mode is transaction, and "DISCARD ALL;" when session.                                                                                                                                                                                                                                                                                                        |
 | `PGBOUNCER_IGNORE_STARTUP_PARAMETERS` | Adds parameters to ignore when pgbouncer is starting. Some postgres libraries, like Go's pq, append this parameter, making it impossible to use this buildpack. Default is empty and the most common ignored parameter is `extra_float_digits`. Multiple parameters can be seperated via commas.  Example: `PGBOUNCER_IGNORE_STARTUP_PARAMETERS="extra_float_digits, some_other_param`" |
-| `PGBOUNCER_QUERY_WAIT_TIMEOUT`        | Default is 120 seconds, helps when the server is down or the database rejects connections for any reason. If this is disabled, clients will be queued infinitely.                                                                                                                                                                                                                       
+| `PGBOUNCER_QUERY_WAIT_TIMEOUT`        | Default is 120 seconds, helps when the server is down or the database rejects connections for any reason. If this is disabled, clients will be queued infinitely.                                                                                                                                                                                                                        |
+| `PGBOUNCER_CONNECT_QUERY`             | Default is empty. Query to be executed after a connection is established, but before allowing the connection to be used by any clients. Useful for setting session-level parameters like `statement_timeout`.                                                                                                                                                                             |
 
 ## Monitoring
 

@@ -28,9 +28,9 @@ cat >>"$CONFIG_DIR/pgbouncer.ini" <<EOFEOF
 [pgbouncer]
 listen_addr               = 127.0.0.1
 listen_port               = 6000
-auth_type                 = md5
+auth_type                 = ${PGBOUNCER_AUTH_TYPE:-md5}
 auth_file                 = $CONFIG_DIR/users.txt
-server_tls_sslmode        = prefer
+server_tls_sslmode        = ${PGBOUNCER_SERVER_TLS_SSLMODE:-require}
 server_tls_protocols      = secure
 server_tls_ciphers        = HIGH:!ADH:!AECDH:!LOW:!EXP:!MD5:!3DES:!SRP:!PSK:@STRENGTH
 stats_users               = ${PGBOUNCER_STATS_USER}
@@ -59,6 +59,12 @@ query_wait_timeout        = ${PGBOUNCER_QUERY_WAIT_TIMEOUT:-120}
 
 [databases]
 EOFEOF
+
+if [ -n "${PGBOUNCER_MAX_PREPARED_STATEMENTS:-}" ]; then
+  sed -i "/^\[databases\]/i max_prepared_statements = ${PGBOUNCER_MAX_PREPARED_STATEMENTS}" "$CONFIG_DIR/pgbouncer.ini"
+fi
+
+function urldecode() { : "${*//+/ }"; echo -e "${_//%/\\x}"; }
 
 function dbname() {
   local idx="$1"
@@ -89,7 +95,8 @@ for POSTGRES_URL in $POSTGRES_URLS; do
     fi
   done
 
-  DB_MD5_PASS="md5"$(echo -n "${DB_PASS}""${DB_USER}" | md5sum | awk '{print $1}')
+  DECODED_DB_USER="$(urldecode "$DB_USER")"
+  DECODED_DB_PASS="$(urldecode "$DB_PASS")"
 
   CLIENT_DB_NAME="$(dbname $index)"
 
@@ -102,11 +109,16 @@ for POSTGRES_URL in $POSTGRES_URLS; do
   fi
 
   cat >>"$CONFIG_DIR/users.txt" <<EOFEOF
-"$DB_USER" "$DB_MD5_PASS"
+"$DECODED_DB_USER" "$DECODED_DB_PASS"
 EOFEOF
 
+  CONNECT_QUERY_PARAM=''
+  if [ -n "${PGBOUNCER_CONNECT_QUERY:-}" ]; then
+    CONNECT_QUERY_PARAM="connect_query='${PGBOUNCER_CONNECT_QUERY//\'/''}'"
+  fi
+
   cat >>"$CONFIG_DIR/pgbouncer.ini" <<EOFEOF
-$CLIENT_DB_NAME= host=$DB_HOST dbname=$DB_NAME port=$DB_PORT
+$CLIENT_DB_NAME= host=$DB_HOST dbname=$DB_NAME port=$DB_PORT $CONNECT_QUERY_PARAM
 EOFEOF
 
   ((index += 1))
